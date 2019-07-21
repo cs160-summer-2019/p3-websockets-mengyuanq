@@ -16,21 +16,81 @@
 </head>
 <body>
     <!-- You may change the dimensions of this canvas -->
-    <canvas id="myCanvas" width="750px" height="750px"></canvas>
+    <canvas id="myCanvas" width="750px" height="750px" style="border:1px solid #000000;"></canvas>
 </body>
 <script>
-
+$(document).ready(()=>{
     // setting up the canvas and one paper tool
     var canvas = document.getElementById('myCanvas');
     paper.setup(canvas);
     var tool = new paper.Tool();
+    var path = new paper.Path();
+  
+  // identifying each client
+  // inspired by Himanshu Chotwani 
+    var user = Math.floor(Math.random() * 100) + 1;
+  
+  // keep track of all users (paired with their path)
+    var users = {user: path};
+  
+  //7/21 - 02:32 randomly generate color from a set of colors 
+    var colors = ['salmon', 'powderblue','seagreen','sienna', 'slategrey','black'];
+    // random index indicating the color in color set 
+    var indexC = Math.floor(Math.random() * 6); 
+  // 7/20 - 22:55 the drawing game
+  tool.onMouseMove = function(event) {
+    path.add(event.point);
+    path.strokeColor = colors[indexC];
+    path.strokeWidth = 5;
+    // the message to send to the server
+    let message = {
+      x: event.point.x, 
+      y: event.point.y,
+      //identifying the user who sent the message
+      user: user,
+      color: indexC
+    };
+    setTimeout(()=>{
+      // send message to the server
+      socket.send(JSON.stringify(message));
+    }, 500);
+  }
+    // create a new websocket connecting to the server
+    var socket = new WebSocket('wss://p3-websockets-mengyuanq-mengyuanq404017.codeanyapp.com/ws/draw');
 
-    // getting the URL (you may want to use for Exercise 3)
-    var url = window.location.href;
+// check the size of the device
+// indexOf implementation inspired by stack overflow https://stackoverflow.com/questions/4597050/how-to-check-if-the-url-contains-a-given-string
+if (window.location.href.indexOf("?size=large") > -1) {
+// triggered when receiving a message from the server
+socket.onmessage = function(receivedMessage) {
+	// do something when you receive a message
+  let d = JSON.parse(receivedMessage.data);
+  // reconstruct the point with x and y
+  let p = new paper.Point(d['x'], d['y']);
+  // reconstruct the color
+  let c = colors[d['color']];
+  // identifying the user who received the message
+  if(d['user'] in users){
+    // add point to corresponding path
+     users[d['user']].add(p); 
+  } else{
+    // assign a new path to the new user 
+    users[d['user']] = new paper.Path();
+    users[d['user']].add(p);
+    users[d['user']].strokeColor = c;
+    users[d['user']].strokeWidth = 5;
+  }
+ 
+};
+} else{
+  return;
+}
 
-    // var socket = new WebSocket(
-    //     'wss://<your url here>/ws/draw');
-
+// notify console if socket closes unexpectedly
+socket.onclose = function(e) {
+    console.error('Chat socket closed unexpectedly');
+};
+})
 
 </script>
 </html>
