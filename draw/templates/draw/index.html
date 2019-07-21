@@ -26,6 +26,13 @@ $(document).ready(()=>{
     var tool = new paper.Tool();
     var path = new paper.Path();
   
+  // 7/21 - 12:50 shake to clear feature
+  window.addEventListener('devicemotion', (e)=> {
+    if (Math.abs(e.acceleration.x)>1 || Math.abs(e.acceleration.y)>1){
+      paper.project.clear();
+    }
+  });
+  
   // identifying each client
   // inspired by Himanshu Chotwani 
     var user = Math.floor(Math.random() * 100) + 1;
@@ -37,6 +44,15 @@ $(document).ready(()=>{
     var colors = ['salmon', 'powderblue','seagreen','sienna', 'slategrey','black'];
     // random index indicating the color in color set 
     var indexC = Math.floor(Math.random() * 6); 
+  
+   // 7/21 - 13:30 tilt to change color
+  window.addEventListener('devicemotion', (e) => {
+    if (e.gamma > 20){
+      indexC = Math.floor(Math.random() * 6);
+      path.strokeColor = colors[indexC];
+    }
+  });
+  
   // 7/20 - 22:55 the drawing game
   tool.onMouseMove = function(event) {
     path.add(event.point);
@@ -60,6 +76,8 @@ $(document).ready(()=>{
 
 // check the size of the device
 // indexOf implementation inspired by stack overflow https://stackoverflow.com/questions/4597050/how-to-check-if-the-url-contains-a-given-string
+// a “single-user device” is initialized by loading the URL <your url>:8000/draw/?size=small and that 
+// a “large display” is initialized at the URL <your url>:8000/draw/?size=large
 if (window.location.href.indexOf("?size=large") > -1) {
 // triggered when receiving a message from the server
 socket.onmessage = function(receivedMessage) {
