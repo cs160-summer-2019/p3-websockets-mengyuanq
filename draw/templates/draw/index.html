@@ -28,8 +28,8 @@ $(document).ready(()=>{
   
   // 7/21 - 12:50 shake to clear feature
   window.addEventListener('devicemotion', (e)=> {
-    if (Math.abs(e.acceleration.x)>1 || Math.abs(e.acceleration.y)>1){
-      paper.project.clear();
+    if (Math.abs(e.acceleration.x)>20 && Math.abs(e.acceleration.y)>20){
+      location.reload();
     }
   });
   
@@ -41,14 +41,19 @@ $(document).ready(()=>{
     var users = {user: path};
   
   //7/21 - 02:32 randomly generate color from a set of colors 
-    var colors = ['salmon', 'powderblue','seagreen','sienna', 'slategrey','black'];
+    var colors = ['red', 'blue','yellow','black', 'green','brown'];
     // random index indicating the color in color set 
     var indexC = Math.floor(Math.random() * 6); 
   
    // 7/21 - 13:30 tilt to change color
-  window.addEventListener('devicemotion', (e) => {
-    if (e.gamma > 20){
-      indexC = Math.floor(Math.random() * 6);
+  window.addEventListener('deviceorientation', (e) => {
+    console.log(e.gamma + 'deg');
+    if (e.gamma > 35){
+      if (indexC == 5){
+        indexC = 0;
+      } else{
+        indexC = 1 + indexC;
+      }
       path.strokeColor = colors[indexC];
     }
   });
@@ -76,8 +81,8 @@ $(document).ready(()=>{
 
 // check the size of the device
 // indexOf implementation inspired by stack overflow https://stackoverflow.com/questions/4597050/how-to-check-if-the-url-contains-a-given-string
-// a “single-user device” is initialized by loading the URL <your url>:8000/draw/?size=small and that 
-// a “large display” is initialized at the URL <your url>:8000/draw/?size=large
+// a “single-user device” is initialized by loading the URL <your url>/draw/?size=small and that 
+// a “large display” is initialized at the URL <your url>/draw/?size=large
 if (window.location.href.indexOf("?size=large") > -1) {
 // triggered when receiving a message from the server
 socket.onmessage = function(receivedMessage) {
@@ -103,7 +108,6 @@ socket.onmessage = function(receivedMessage) {
 } else{
   return;
 }
-
 // notify console if socket closes unexpectedly
 socket.onclose = function(e) {
     console.error('Chat socket closed unexpectedly');
